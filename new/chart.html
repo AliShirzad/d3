@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>charset</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../d3js/d3/build/d3.js"></script>
+        <script src="tip.js"></script>        
+        
+    </head>
+    <body>
+        <style>
+            @font-face {
+        font-family: Bnazanin;
+        src: url(BNazanin.ttf);
+            }
+    .d3-tip {
+
+      line-height: 1;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 20px;
+      font-family: Bnazanin;
+      
+    }
+ 
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+      box-sizing: border-box;
+      display: inline;
+      font-size: 10px;
+      width: 100%;
+      line-height: 1;
+      color: rgba(0, 0, 0, 0.6);
+      content: "\25BC";
+      position: absolute;
+      text-align: center;
+    }
+ 
+    /* Style northward tooltips specifically */
+    .d3-tip.n:after {
+      margin: -2px 0 0 0;
+      top: 100%;
+      left: 0;
+    }
+        </style>
+        <div id="root">
+        </div>
+<script>
+
+
+    var width = 1000
+    var height = 1000
+
+
+    function randomProportionsGen(){
+        // This function 
+        // 1. generates random numbers
+        // 2. takes it into array
+        // 3. sums all numbers in the array
+        // 4. devides each number by sums of all the numbers
+        // 5. returns array of proportions
+        var randomNums = []
+		var proportions = []
+      
+        var sum = 0;
+        // 1. generates random numbers
+        // 2. takes it into array
+        for(var i = 1; i <= 10; i++){
+            randomNums.push(Math.floor(Math.random() * 100))
+        }
+         // 3. sums all numbers in the array
+        for(var i =0; i < randomNums.length; i++){
+            sum += randomNums[i]
+        }
+        // 4. devides each number by sums of all the numbers
+        
+        for(var i = 0; i < randomNums.length; i++){
+			proportions.push( randomNums[i] / sum )
+        }
+        // 5. returns array of proportions
+        return proportions
+    }
+  
+var wealth = 10000000
+var proportions = randomProportionsGen()
+// proportion of wealth 
+var wealthproportions = randomProportionsGen().map(function(i){
+        return (Math.floor(i * wealth)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+})
+var Scale = 100
+var radius = proportions.map(function(i){
+    return Math.sqrt(i)
+})
+
+// radius = radius.map(function(i){
+//     return i * Scale
+// })
+
+var data = {
+    numbers : [
+        {id : proportions[0], name: 'طلا'},
+        {id:  proportions[1], name: 'سکه'},
+        {id:  proportions[2], name: 'املاک و مستغلات'},
+        {id:  proportions[3], name: 'ارز'},
+        {id:  proportions[4], name: 'سپرده بانکی'},
+        {id:  proportions[5], name: 'بیمه عمر'},
+        {id:  proportions[6], name: 'اوراق با درآمد ثابت'},
+        {id:  proportions[7], name: 'صندوق سرمایه گذاری'},
+        {id:  proportions[8], name: 'کالا'},
+        {id:  proportions[9], name: 'پول نقد'}
+    ]
+}
+
+
+
+    var svg = d3.select('#root')
+                .append('svg')
+                .attr('height', height)
+                .attr('width', width)
+                .append('g')
+                    .attr('fill', 'lightgray')
+
+
+
+    var colors = d3.scaleOrdinal()
+                    .domain(proportions)
+                    .range([
+                        'rgb(255, 155, 80)',
+                        'rgb(236, 95, 68)',
+                        'rgb(138, 43, 226)',
+                        'rgb(255, 0, 0)',
+                        'rgb(0, 0, 0)', 
+                        'rgb(0, 128, 0)', 
+                        'rgb(0, 0, 255)', 
+                        'rgb(255, 20, 147)', 
+                        'rgb(0, 255, 0)', 
+                        'rgb(255, 255, 0)'])
+
+ var colors2 = d3.scaleLinear()
+                    .domain([10, 100])
+                    .range(['green', 'black'])
+
+
+            
+                                 
+
+var color2 = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var tool_tip = d3.tip()
+      .attr("class", "d3-tip")
+      .offset([0, 0])
+      .html(function(d, i) { return " سهم " + d.name + '، ' + Math.floor(proportions[i] * 100) + "%" + " از سرمایه" + "<br/>" + " به مبلغ " + wealthproportions[i] + " تومان "  });
+    svg.call(tool_tip);
+    
+    var circles = svg.selectAll('circle')
+                        .data(data.numbers)
+                        .enter()
+                        .append('circle')
+                            .attr('r', function(d){
+                                return Math.sqrt(d.id) * Scale
+                            })
+                            .attr('fill', function(d, i){
+                                return colors(d.id)
+                            })
+                            .on('mouseover', tool_tip.show)
+                            .on('mouseout', tool_tip.hide)
+                            .call(d3.drag()
+                                .on("start", dragstarted)
+                                .on("drag", dragged)
+                                .on("end", dragended));
+
+
+// Tooltip with title tag
+//  circles.append("title")
+//         .classed('tooltip', true)
+//         .text(function(d, i) { 
+//             return " سهم " + d.name + '، ' + Math.floor(proportions[i] * 100) + "%" + " از سرمایه" + " به مبلغ " + wealthproportions[i] + " تومان " 
+//             })
+              
+
+
+
+        
+                        
+
+
+var simulation = d3.forceSimulation()
+                   .force("x", d3.forceX(width / 2 ).strength(0.05))
+                   .force("y", d3.forceY(height / 2 ).strength(0.05))
+                   .force('collide', d3.forceCollide(function(d){
+                        return Math.sqrt(d.id) * Scale + 1
+                   }))
+    // .force("link", d3.forceLink().id(function(d) { return d ; }))
+    // .force("charge", d3.forceManyBody().strength(10))
+    // .force("collide", d3.forceCollide().strength(100))
+    // .force("center", d3.forceCenter(300, 300));
+
+
+simulation.nodes(data.numbers)
+          .on("tick", ticked);
+
+//   simulation.force("link")
+//             .links(data);
+
+  function ticked() {
+    circles
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  }
+
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+}
+
+    // setInterval(function(){
+    //     window.location.reload()
+    //     }, 4000)
+</script>    
+
+    </body>
+</html>
